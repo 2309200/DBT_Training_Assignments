@@ -19,15 +19,20 @@ def get_snowflake_connection():
     )
 
 def extract_data():
-    csv_df = pd.read_csv(
-        "source_data.csv",
-        sep=",",
-        encoding="utf-8-sig"
-    )
+    csv_df = pd.read_csv("source_data.csv", encoding="utf-8-sig")
     excel_df = pd.read_excel("source_data.xlsx")
+
     csv_df.columns = csv_df.columns.str.strip().str.upper()
     excel_df.columns = excel_df.columns.str.strip().str.upper()
+
+    csv_df["USER_ID"] = csv_df["USER_ID"].astype(int)
+    excel_df["USER_ID"] = excel_df["USER_ID"].astype(int)
+
+    csv_df["DOB"] = pd.to_datetime(csv_df["DOB"], errors="coerce")
+    excel_df["DOB"] = pd.to_datetime(excel_df["DOB"], errors="coerce")
+
     return csv_df, excel_df
+
 
 def standardize_gender(gender):
     if pd.isna(gender):
@@ -41,17 +46,18 @@ def standardize_gender(gender):
 
 def create_raw_layer(csv_df, excel_df):
     raw_df = pd.concat([csv_df, excel_df], ignore_index=True)
+
     raw_df["GENDER"] = raw_df["GENDER"].apply(standardize_gender)
-    raw_df["DOB"] = pd.to_datetime(raw_df["DOB"], errors="coerce").dt.strftime("%d-%m-%Y")
+
+    raw_df["DOB"] = raw_df["DOB"].dt.strftime("%d-%m-%Y")
+
     raw_df["LOAD_TIMESTAMP"] = datetime.now()
+
     return raw_df
 
-def calculate_age(dob_series):
-    dob = pd.to_datetime(dob_series, format="%d-%m-%Y", errors="coerce")
-    today = pd.Timestamp(date.today())
-    return (today - dob).dt.days // 365
 
 def create_final_layer(csv_df, excel_df):
+
     merged_df = pd.merge(
         csv_df,
         excel_df,
@@ -59,9 +65,23 @@ def create_final_layer(csv_df, excel_df):
         how="inner",
         suffixes=("_csv", "_xlsx")
     )
-    merged_df["AGE"] = calculate_age(merged_df["DOB_csv"])
+
+    print("After INNER JOIN:")
+    print(merged_df)
+
+    today = pd.Timestamp.today()
+
+    merged_df["AGE"] = (
+        (today - merged_df["DOB_csv"]).dt.days // 365
+    )
+
+    print("After AGE calculation:")
+    print(merged_df[["USER_ID", "DOB_csv", "AGE"]])
+
     final_df = merged_df[merged_df["AGE"] > 18]
+
     return final_df
+
 
 def load_to_snowflake(df, table_name, conn):
     success, nchunks, nrows, _ = write_pandas(
@@ -87,6 +107,9 @@ def main():
         conn.close()
 
     print("ETL Pipeline completed successfully.")
+    print("Final DataFrame before Snowflake load:")
+    print(final_df)
+
 
 if __name__ == "__main__":
     main()
