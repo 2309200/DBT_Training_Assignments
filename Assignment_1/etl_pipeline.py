@@ -17,7 +17,6 @@ def get_snowflake_connection():
         database=os.getenv("SNOWFLAKE_DATABASE"),
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
     )
-
 def extract_data():
     csv_df = pd.read_csv("source_data.csv", encoding="utf-8-sig")
     excel_df = pd.read_excel("source_data.xlsx")
@@ -32,30 +31,21 @@ def extract_data():
     excel_df["DOB"] = pd.to_datetime(excel_df["DOB"], errors="coerce")
 
     return csv_df, excel_df
-
-
-def standardize_gender(gender):
-    if pd.isna(gender):
-        return
-    gender = str(gender).strip().lower()
-    if gender in ["male", "m"]:
-        return "M"
-    elif gender in ["female", "f"]:
-        return "F"
-    return "O"
-
 def create_raw_layer(csv_df, excel_df):
     raw_df = pd.concat([csv_df, excel_df], ignore_index=True)
-
-    raw_df["GENDER"] = raw_df["GENDER"].apply(standardize_gender)
-
+    raw_df["GENDER"] = (
+        raw_df["GENDER"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .map({"male": "M","m": "M","female": "F",
+            "f": "F"
+        })
+        .fillna("O")
+    )
     raw_df["DOB"] = raw_df["DOB"].dt.strftime("%d-%m-%Y")
-
     raw_df["LOAD_TIMESTAMP"] = datetime.now()
-
     return raw_df
-
-
 def create_final_layer(csv_df, excel_df):
 
     merged_df = pd.merge(
