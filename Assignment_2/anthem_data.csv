@@ -1,0 +1,4 @@
+member_id,claim_id,claim_amount,service_date,payer_name
+M001,C1001,1200.50,2025-01-10,anthem
+M002,C1002,850.75,2025-01-12,anthem
+M003,C1003,430.00,2025-01-15,anthem

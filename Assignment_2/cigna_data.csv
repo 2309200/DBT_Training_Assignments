@@ -1,0 +1,4 @@
+member_id,claim_id,claim_amount,service_date,payer_name
+M101,C2001,920.00,2025-01-05,cigna
+M102,C2002,1500.00,2025-01-07,cigna
+M103,C2003,300.00,2025-01-09,cigna
