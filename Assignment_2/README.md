@@ -1,24 +1,18 @@
-# README
+Environment Variable Setup
+This project uses environment variables to store Snowflake credentials so that sensitive information is not hard-coded in the source code.
 
-## Overview
-This repository contains assignments related to DBT (Data Build Tool) training.
+Steps
+Create a file named .env in the root directory of the project.
 
-## Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/2309200/DBT_Training_Assignments.git
-   ```
-2. Navigate to the Assignment_2 directory:
-   ```bash
-   cd DBT_Training_Assignments/Assignment_2
-   ```
-3. Install any required dependencies.
+Add the following Snowflake configuration details to the .env file:
 
-## Usage
-- Follow the instructions provided within each assignment.
-- Execute the necessary commands to run the DBT models.
+SNOWFLAKE_ACCOUNT=your_account_identifier SNOWFLAKE_USER=your_username SNOWFLAKE_PASSWORD=your_password SNOWFLAKE_ROLE=SYSADMIN SNOWFLAKE_WAREHOUSE=MEDIUM_WH SNOWFLAKE_DATABASE=ETL_DB SNOWFLAKE_SCHEMA=PUBLIC
 
-## File Descriptions
-- `assignment_1.sql`: SQL file for the first assignment.
-- `assignment_2.sql`: SQL file for the second assignment.
-- Other files contain relevant DBT configurations and models.
+Update the values with your own Snowflake account details.
+
+The project uses the python-dotenv library to load these variables at runtime, so no additional setup is required once the .env file is created.
+
+Note
+
+The .env file should not be pushed to GitHub.
+Make sure .env is listed in .gitignore
